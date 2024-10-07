@@ -1,0 +1,8 @@
+.env
+/postgres-data
+/.docker/data
+.docker/data
+.docker/data
+src-candidato/database/scripts/seed.sql
+# Ignorar arquivos :Zone.Identifier
+**/*.Identifier

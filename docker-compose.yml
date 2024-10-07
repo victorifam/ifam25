@@ -1,0 +1,43 @@
+services:
+  pgsql:
+    image: postgres:12.4
+    ports: 
+    - "55432:5432"
+    environment: 
+      POSTGRES_PASSWORD: ingresso
+      POSTGRES_DB: ingresso
+      POSTGRES_USER: chef  
+      POSTGRES_SINGLE_USER: ingresso
+      POSTGRES_SINGLE_USER_PASSWORD: ingresso
+      TZ: America/Sao_Paulo    
+    volumes:
+    - './.docker/init:/docker-entrypoint-initdb.d'
+    - './.docker/data:/var/lib/postgresql/data'
+  candidato:    
+    build:
+        context: '.'    
+        target: 'development'
+        args:
+          uid: ${UID}      
+    depends_on:
+    - pgsql      
+    - mailpit          
+    environment: 
+      PHP_EXTENSION_XDEBUG: 1                  
+    user: ${UID}
+    ports:
+    - "8823:8000"
+    volumes:    
+    - './src-candidato:/app'
+    working_dir: /app
+    links:
+    - pgsql
+    dns:
+    - 8.8.8.8
+    - 9.9.9.9
+    command: /bin/sh -c "composer install && php artisan migrate --database=pgsql-chef && php artisan serve --host 0.0.0.0 && php artisan queue:work --sleep=3 --tries=3 --max-time=3600"
+  mailpit:
+    image: axllent/mailpit
+    ports:
+    - "8025:8025"
+    - "1025:1025"
